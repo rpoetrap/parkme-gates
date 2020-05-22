@@ -5,8 +5,8 @@ import PiGPIO from './Pigpio';
  * Gate status for servo pulse width (500-2500)
  */
 const Gate = {
-  open: 500,
-  close: 1500
+  open: 700,
+  close: 1400
 }
 
 /**
