@@ -21,7 +21,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "dotenv": "^8.2.0",
-    "pigpio-client": "^1.5.1"
+    "mfrc522-rpi": "^2.1.2",
+    "pigpio-client": "^1.5.1",
+    "rpi-softspi": "^1.0.5"
   },
   "devDependencies": {
     "@types/node": "^13.13.5",
