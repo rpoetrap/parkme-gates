@@ -29,7 +29,7 @@ interface Param {
 
 type Callback = (error: Error, ...args: any) => any;
 type Pulse = [number, number, number];
-type Mode = 'output' | 'input';
+type Mode = 'output' | 'input' | 'out' | 'in';
 type SerialMode = 'invert' | 'normal';
 
 declare class GPIO extends PiGPIO {
@@ -44,8 +44,8 @@ declare class GPIO extends PiGPIO {
   analogWrite(dutyCycle: number, cb?: Callback): Promise<any>;
 
   // Notification methods
-  notify(callback: Callback): any;
-  endNotify(cb: Callback): void;
+  notify(callback: (level: number, tick: number) => any): any;
+  endNotify(cb?: Callback): void;
 
   // glitch
   glitchSet(steady: number, callback?: Callback): Promise<any>;
