@@ -21,7 +21,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "dotenv": "^8.2.0",
+    "jimp": "^0.12.1",
     "mfrc522-rpi": "^2.1.2",
+    "node-raspistill": "^1.0.1",
     "pigpio-client": "^1.5.1",
     "rpi-softspi": "^1.0.5"
   },
@@ -30,6 +32,7 @@
     "@types/pigpio": "^1.2.2",
     "eslint": "^7.0.0",
     "nodemon": "^2.0.3",
+    "terminal-image": "^1.0.1",
     "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   }
