@@ -1,7 +1,7 @@
 {
-  "name": "poth-parking",
+  "name": "parkme-gates",
   "version": "1.0.0",
-  "description": "Parking system integrated with vehicle plate recognition",
+  "description": "Parking gate system with NFC for Raspberry Pi",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
@@ -13,12 +13,19 @@
   },
   "keywords": [
     "parking",
-    "vehicle",
-    "plate",
-    "backpropagation"
+    "typescript",
+    "raspberry"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rpoetrap/parkme-gates.git"
+  },
   "author": "Rizki Putra Pamungkas",
   "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/rpoetrap/parkme-gates/issues"
+  },
+  "homepage": "https://github.com/rpoetrap/parkme-gates#readme",
   "dependencies": {
     "dotenv": "^8.2.0",
     "jimp": "^0.12.1",
