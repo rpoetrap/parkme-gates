@@ -4,7 +4,7 @@ import PiGPIO from './Pigpio';
 /**
  * Traffic LED Configuration
  */
-type TrafficConfig = {
+export type TrafficConfig = {
 	red: number;
 	yellow: number;
 	green: number;
