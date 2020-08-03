@@ -4,8 +4,8 @@ import { TrafficConfig } from '../helpers/Led';
 
 export const barrierGate = 24;
 export const sonar = {
-	trigger: 1,
-	echo: 2
+	trigger: 20,
+	echo: 21
 };
 export const led: TrafficConfig = {
 	red: 13,
