@@ -29,6 +29,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
+    "form-data": "^3.0.0",
     "freefare": "^0.1.5",
     "jimp": "^0.12.1",
     "lodash": "^4.17.19",
