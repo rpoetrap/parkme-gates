@@ -1,4 +1,4 @@
-import { isNil, find } from 'lodash';
+import { isNil } from 'lodash';
 import readline from 'readline-sync';
 import FormData from 'form-data';
 import fs from 'fs';
@@ -11,6 +11,7 @@ import axios from './helpers/axios';
 import { APIResponse } from './types';
 import Barrier from './helpers/Barrier';
 import Led from './helpers/Led';
+import camera from './configs/camera';
 
 const checkAuth = async (host: string) => {
 	const { data: authResult } = await axios.request<APIResponse>({
@@ -75,6 +76,7 @@ const checkAuth = async (host: string) => {
 
 		const auth = await checkAuth(API_HOST);
 		if (auth) {
+			console.log('auth passed');
 			const rfid = await sensor.setupRfid();
 			const barrier = await new Barrier().setup(sensor.barrierGate);
 			const trafficLED = await new Led().setup(sensor.led);
@@ -92,8 +94,8 @@ const checkAuth = async (host: string) => {
 					if (!requesting) {
 						requesting = true;
 						const form = new FormData();
-						form.append('card_serial', 'asdjkh137e9');
-						form.append('vehicle_plate', fs.createReadStream('photos/test1.jpg'));
+						form.append('card_serial', uid);
+						form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
 						axios.request<APIResponse>({
 							url: `${API_HOST}/api/parking`,
 							method: 'POST',
