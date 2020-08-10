@@ -1,7 +1,6 @@
 import { isNil } from 'lodash';
 import readline from 'readline-sync';
 import FormData from 'form-data';
-import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
@@ -90,8 +89,10 @@ const checkAuth = async (host: string) => {
 			while (true) {
 				const uid = await sensor.getRfidUid();
 				if (uid) {
+					console.log('card detected');
 					released = false;
 					if (!requesting) {
+						console.log('sending data to server');
 						requesting = true;
 						const form = new FormData();
 						form.append('card_serial', uid);
@@ -102,6 +103,7 @@ const checkAuth = async (host: string) => {
 							data: form,
 							headers: form.getHeaders()
 						}).then(({ data: result }) => {
+							console.log('data sent');
 							if (result.data) {
 								barrier.open();
 								trafficLED.setColor('yellow');
@@ -110,11 +112,10 @@ const checkAuth = async (host: string) => {
 								setTimeout(() => trafficLED.setColor('red'), 500);
 							}
 						});
-					} else {
-						// console.log('waiting');
 					}
 				} else {
 					released = true;
+					console.log('card released');
 				}
 				if (!released) {
 					clearTimeout(barrierTimeout);
@@ -125,6 +126,8 @@ const checkAuth = async (host: string) => {
 					}, 5000);
 				}
 			}
+		} else {
+			console.log('failed to authenticate');
 		}
 	} catch (e) {
 		console.log(e.message);
