@@ -93,8 +93,7 @@ const checkAuth = async (host: string) => {
 				isFinished = false;
 				const form = new FormData();
 				form.append('card_serial', uid);
-				form.append('vehicle_plate', fs.createReadStream('photos/test1.jpg'));
-				// form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
+				form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
 				axios.request<APIResponse>({
 					url: `${host}/api/parking`,
 					method: 'POST',
