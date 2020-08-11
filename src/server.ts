@@ -2,6 +2,7 @@ import { isNil } from 'lodash';
 import readline from 'readline-sync';
 import FormData from 'form-data';
 import fs from 'fs';
+import { Device } from 'freefare';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
@@ -17,6 +18,10 @@ interface runArgs {
 	host: string;
 	barrierTimeout: NodeJS.Timeout;
 }
+
+let rfid: Device;
+let barrier: Barrier;
+let trafficLED: Led;
 
 const checkAuth = async (host: string) => {
 	const { data: authResult } = await axios.request<APIResponse>({
@@ -69,9 +74,9 @@ const checkAuth = async (host: string) => {
 }
 
 (async () => {
-	const rfid = await sensor.setupRfid();
-	const barrier = await new Barrier().setup(sensor.barrierGate);
-	const trafficLED = await new Led().setup(sensor.led);
+	rfid = await sensor.setupRfid();
+	barrier = await new Barrier().setup(sensor.barrierGate);
+	trafficLED = await new Led().setup(sensor.led);
 	let requesting = false;
 	let released = true;
 	let isFinished = true;
@@ -97,7 +102,6 @@ const checkAuth = async (host: string) => {
 					headers: form.getHeaders()
 				}).then(({ data: result }) => {
 					console.log('data sent');
-					requesting = false;
 					if (result.data) {
 						barrier.open();
 						trafficLED.setColor('green');
@@ -110,6 +114,7 @@ const checkAuth = async (host: string) => {
 							console.log(result.error?.message);
 						}
 					}
+					requesting = false;
 				});
 			}
 		} else {
@@ -117,7 +122,7 @@ const checkAuth = async (host: string) => {
 			released = true;
 		}
 
-		if (!released || (!released && requesting)) {
+		if (!released || requesting) {
 			clearTimeout(barrierTimeout);
 			barrierTimeout = setTimeout(() => {
 				barrier.close();
@@ -146,7 +151,7 @@ const checkAuth = async (host: string) => {
 			if (isNil(rfid)) throw new Error('No RFID Device')
 			barrier.close();
 			trafficLED.setColor('red');
-			
+
 			await run({ host: API_HOST, barrierTimeout });
 		} else {
 			console.log('failed to authenticate');
@@ -161,3 +166,18 @@ const checkAuth = async (host: string) => {
 		}, 2000);
 	}
 })();
+
+const exitHandler = async () => {
+	console.log('Application exit');
+
+	await rfid.abort();
+	await rfid.close();
+	barrier.close();
+	trafficLED.setColor('red');
+}
+
+process.on('exit', () => exitHandler())
+process.on('SIGINT', () => exitHandler());
+process.on('SIGUSR1', () => exitHandler());
+process.on('SIGUSR2', () => exitHandler());
+process.on('uncaughtException', () => exitHandler());
