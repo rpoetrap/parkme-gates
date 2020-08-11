@@ -8,9 +8,9 @@ export const sonar = {
 	echo: 21
 };
 export const led: TrafficConfig = {
-	red: 13,
-	yellow: 6,
-	green: 5
+	red: 21,
+	yellow: 20,
+	green: 16
 }
 
 let rfidDevice: Device;
