@@ -74,20 +74,22 @@ const checkAuth = async (host: string) => {
 	const trafficLED = await new Led().setup(sensor.led);
 	let requesting = false;
 	let released = true;
+	let isFinished = true;
 
 	const run = async (data: runArgs) => {
 		let { host, barrierTimeout } = data;
 		const uid = await sensor.getRfidUid();
 		if (uid) {
 			released = false;
-			if (!requesting) {
+			if (!requesting && isFinished) {
 				console.log('card detected');
 				console.log('sending data to server');
 				requesting = true;
+				isFinished = false;
 				const form = new FormData();
 				form.append('card_serial', uid);
-				// form.append('vehicle_plate', fs.createReadStream('photos/test1.jpg'));
-				form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
+				form.append('vehicle_plate', fs.createReadStream('photos/test1.jpg'));
+				// form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
 				axios.request<APIResponse>({
 					url: `${host}/api/parking`,
 					method: 'POST',
@@ -95,6 +97,7 @@ const checkAuth = async (host: string) => {
 					headers: form.getHeaders()
 				}).then(({ data: result }) => {
 					console.log('data sent');
+					requesting = false;
 					if (result.data) {
 						barrier.open();
 						trafficLED.setColor('green');
@@ -114,11 +117,11 @@ const checkAuth = async (host: string) => {
 			released = true;
 		}
 
-		if (!released) {
+		if (!released || (!released && requesting)) {
 			clearTimeout(barrierTimeout);
 			barrierTimeout = setTimeout(() => {
 				barrier.close();
-				requesting = false;
+				isFinished = true;
 				trafficLED.setColor('red');
 			}, 5000);
 		}
