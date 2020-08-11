@@ -1,6 +1,7 @@
 import { isNil } from 'lodash';
 import readline from 'readline-sync';
 import FormData from 'form-data';
+import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
@@ -11,6 +12,11 @@ import { APIResponse } from './types';
 import Barrier from './helpers/Barrier';
 import Led from './helpers/Led';
 import camera from './configs/camera';
+
+interface runArgs {
+	host: string;
+	barrierTimeout: NodeJS.Timeout;
+}
 
 const checkAuth = async (host: string) => {
 	const { data: authResult } = await axios.request<APIResponse>({
@@ -63,6 +69,62 @@ const checkAuth = async (host: string) => {
 }
 
 (async () => {
+	const rfid = await sensor.setupRfid();
+	const barrier = await new Barrier().setup(sensor.barrierGate);
+	const trafficLED = await new Led().setup(sensor.led);
+	let requesting = false;
+	let released = true;
+
+	const run = async (data: runArgs) => {
+		let { host, barrierTimeout } = data;
+		const uid = await sensor.getRfidUid();
+		if (uid) {
+			released = false;
+			if (!requesting) {
+				console.log('card detected');
+				console.log('sending data to server');
+				requesting = true;
+				const form = new FormData();
+				form.append('card_serial', uid);
+				// form.append('vehicle_plate', fs.createReadStream('photos/test1.jpg'));
+				form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
+				axios.request<APIResponse>({
+					url: `${host}/api/parking`,
+					method: 'POST',
+					data: form,
+					headers: form.getHeaders()
+				}).then(({ data: result }) => {
+					console.log('data sent');
+					if (result.data) {
+						barrier.open();
+						trafficLED.setColor('green');
+					} else {
+						trafficLED.setColor('yellow');
+						setTimeout(() => trafficLED.setColor('red'), 500);
+						if (result.error?.errors?.length) {
+							console.log(result.error?.errors[0].message);
+						} else {
+							console.log(result.error?.message);
+						}
+					}
+				});
+			}
+		} else {
+			if (!released) console.log('card released');
+			released = true;
+		}
+
+		if (!released) {
+			clearTimeout(barrierTimeout);
+			barrierTimeout = setTimeout(() => {
+				barrier.close();
+				requesting = false;
+				trafficLED.setColor('red');
+			}, 5000);
+		}
+		await run({ host, barrierTimeout });
+	}
+
 	try {
 		let API_HOST = process.env.API_HOST;
 		if (isNil(API_HOST)) {
@@ -76,60 +138,23 @@ const checkAuth = async (host: string) => {
 		const auth = await checkAuth(API_HOST);
 		if (auth) {
 			console.log('auth passed');
-			const rfid = await sensor.setupRfid();
-			const barrier = await new Barrier().setup(sensor.barrierGate);
-			const trafficLED = await new Led().setup(sensor.led);
 			let barrierTimeout: NodeJS.Timeout = setTimeout(() => { }, 0);
 
-			let requesting = false;
-			let released = true;
 			if (isNil(rfid)) throw new Error('No RFID Device')
 			barrier.close();
 			trafficLED.setColor('red');
-			while (true) {
-				const uid = await sensor.getRfidUid();
-				if (uid) {
-					console.log('card detected');
-					released = false;
-					if (!requesting) {
-						console.log('sending data to server');
-						requesting = true;
-						const form = new FormData();
-						form.append('card_serial', uid);
-						form.append('vehicle_plate', await camera.takePhoto(), { filename: 'capturedImage.jpg' });
-						axios.request<APIResponse>({
-							url: `${API_HOST}/api/parking`,
-							method: 'POST',
-							data: form,
-							headers: form.getHeaders()
-						}).then(({ data: result }) => {
-							console.log('data sent');
-							if (result.data) {
-								barrier.open();
-								trafficLED.setColor('yellow');
-							} else {
-								trafficLED.setColor('yellow');
-								setTimeout(() => trafficLED.setColor('red'), 500);
-							}
-						});
-					}
-				} else {
-					released = true;
-					console.log('card released');
-				}
-				if (!released) {
-					clearTimeout(barrierTimeout);
-					barrierTimeout = setTimeout(() => {
-						barrier.close();
-						requesting = false;
-						trafficLED.setColor('red');
-					}, 5000);
-				}
-			}
+			
+			await run({ host: API_HOST, barrierTimeout });
 		} else {
 			console.log('failed to authenticate');
 		}
 	} catch (e) {
 		console.log(e.message);
+		setInterval(() => {
+			trafficLED.setColor('red');
+			setTimeout(() => {
+				trafficLED.setColor('yellow');
+			}, 1000);
+		}, 2000);
 	}
 })();
