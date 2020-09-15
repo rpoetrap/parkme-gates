@@ -1,10 +1,11 @@
 {
-  "name": "poth-parking",
+  "name": "parkme-gates",
   "version": "1.0.0",
-  "description": "Parking system integrated with vehicle plate recognition",
+  "description": "Parking gate system with NFC for Raspberry Pi",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
+    "develop": "nodemon src/server.ts",
     "build": "npm run build-ts && npm run lint",
     "build-ts": "tsc",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
@@ -12,20 +13,41 @@
   },
   "keywords": [
     "parking",
-    "vehicle",
-    "plate",
-    "backpropagation"
+    "typescript",
+    "raspberry"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rpoetrap/parkme-gates.git"
+  },
   "author": "Rizki Putra Pamungkas",
   "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/rpoetrap/parkme-gates/issues"
+  },
+  "homepage": "https://github.com/rpoetrap/parkme-gates#readme",
   "dependencies": {
-    "onoff": "^6.0.0"
+    "axios": "^0.19.2",
+    "dotenv": "^8.2.0",
+    "form-data": "^3.0.0",
+    "freefare": "^0.1.5",
+    "jimp": "^0.12.1",
+    "lodash": "^4.17.19",
+    "mfrc522-rpi": "^2.1.2",
+    "node-machine-id": "^1.1.12",
+    "node-raspistill": "^1.0.1",
+    "pigpio-client": "^1.5.1",
+    "readline-sync": "^1.4.10",
+    "rpi-softspi": "^1.0.5"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.158",
     "@types/node": "^13.13.5",
-    "@types/onoff": "^4.1.0",
+    "@types/pigpio": "^1.2.2",
+    "@types/readline-sync": "^1.4.3",
     "eslint": "^7.0.0",
     "nodemon": "^2.0.3",
+    "terminal-image": "^1.0.1",
     "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   }
